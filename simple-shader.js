@@ -12,7 +12,7 @@
   https://github.com/Sudospective/simple-shader
 */
 const src = {
-  vert1: `precision lowp float;
+vert1: `precision lowp float;
   attribute vec2 position;
   attribute vec2 texCoord;
   uniform vec2 resolution;
