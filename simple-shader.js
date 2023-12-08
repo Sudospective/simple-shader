@@ -255,6 +255,12 @@ export class SimpleShader {
       });
       gl.uniform2fv(gl.getUniformLocation(prog, "resolution"), [res[0], res[1]]);
       gl.uniform1f(gl.getUniformLocation(prog, "time"), this.time * 0.001);
+      gl.uniform4iv(gl.getUniformLocation(prog, "date"), [
+        Date.getFullYear(),
+        Date.getMonth(),
+        Date.getDate(),
+        Date.getHours()*3600 + Date.getMinutes()*60 + Date.getSeconds()
+      ]);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       if (this.ready)
         window.requestAnimationFrame(this.render);
