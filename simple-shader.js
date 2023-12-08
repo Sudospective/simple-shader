@@ -255,6 +255,12 @@ export class SimpleShader {
       });
       gl.uniform2fv(gl.getUniformLocation(prog, "resolution"), [res[0], res[1]]);
       gl.uniform1f(gl.getUniformLocation(prog, "time"), this.time * 0.001);
+      /*gl.uniform4fv(gl.getUniformLocation(prog, "mouse"), [
+        //mouse x position (while mouse is down, else last position)
+        //mouse y position (while mouse is down, else last position)
+        //z mouse click state https://shadertoyunofficial.wordpress.com/2016/07/20/special-shadertoy-features/
+        //w mouse click state
+      ]);*/
       gl.uniform4iv(gl.getUniformLocation(prog, "date"), [
         Date.getFullYear(),
         Date.getMonth(),
