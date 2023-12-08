@@ -266,9 +266,9 @@ export class SimpleShader {
     this.startTime = Date.now();
     this.render();
   }
-  play() {
+  play(startTime) {
     this.ready = true;
-    this.startTime = Date.now();
+    this.startTime = startTime || Date.now();
     this.render();
   }
   stop() {
