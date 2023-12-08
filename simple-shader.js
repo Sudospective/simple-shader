@@ -261,11 +261,11 @@ export class SimpleShader {
         //z mouse click state https://shadertoyunofficial.wordpress.com/2016/07/20/special-shadertoy-features/
         //w mouse click state
       ]);*/
-      gl.uniform4iv(gl.getUniformLocation(prog, "date"), [
+      gl.uniform4fv(gl.getUniformLocation(prog, "date"), [
         Date.getFullYear(),
         Date.getMonth(),
         Date.getDate(),
-        Date.getHours()*3600 + Date.getMinutes()*60 + Date.getSeconds()
+        Date.getHours()*3600 + Date.getMinutes()*60 + Date.getSeconds() + Date.getMilliseconds()
       ]);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       if (this.ready)
