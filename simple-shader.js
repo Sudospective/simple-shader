@@ -93,11 +93,11 @@ export class SimpleShader {
       console.log("Unable to get canvas with ID", canvasId);
       return null;
     };
-        this.context = this.canvas.getContext("webgl2");
-    this.version = "2";
+    this.context = this.canvas.getContext("webgl2");
+    this.version = 2;
     if (!this.context) {
       this.context = this.canvas.getContext("webgl");
-      this.version = "1";
+      this.version = 1;
     };
     if (!this.context) {
       console.log("Unable to get GL context from canvas with ID", canvasId);
@@ -125,6 +125,8 @@ export class SimpleShader {
       //console.log(text);
       return text;
     }
+    //const vertProm = ((data.vert).includes("\n") || (data.vert).includes("#version")) ? data.vert : fetchVert(data.vert);
+    //const fragProm = ((data.frag).includes("\n") || (data.frag).includes("#version")) ? data.frag : fetchFrag(data.frag);
     const vertProm = fetchVert(data.vert);
     const fragProm = fetchFrag(data.frag);
     let vertSrc = "";
