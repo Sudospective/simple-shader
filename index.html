@@ -24,9 +24,9 @@
       const canvas = document.getElementById("simple-shader");
       import { SimpleShader as Shader } from "/simple-shader.js";
       const def = await new Shader("simple-shader", {
-        frag: "/time.frag",
+        frag: "/examples/time.frag",
         sampler2D: {
-          sampler0: "/font.png"
+          sampler0: "/examples/font.png"
         }
       });
       def.play();
