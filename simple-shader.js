@@ -227,7 +227,7 @@ export class SimpleShader {
         mouse[0] = preMouse.x;
         mouse[1] = preMouse.y;
         mouse[3] = Math.abs(mouse[3]) * -1;
-        console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
+        //console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
       }
     });
     gl.canvas.addEventListener('mousedown', event => {
@@ -240,12 +240,12 @@ export class SimpleShader {
       mouse[1] = preMouse.y;
       mouse[2] = preMouse.x;
       mouse[3] = preMouse.y;
-      console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
+      //console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
     })
     gl.canvas.addEventListener('mouseup', event => {
       mouse[2] = Math.abs(mouse[2]) * -1;
       mouse[3] = Math.abs(mouse[3]) * -1;
-      console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
+      //console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
     });
     const render = function(timestamp) {
       if (this.ready)
