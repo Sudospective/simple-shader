@@ -201,6 +201,52 @@ export class SimpleShader {
       vec4:  "uniform4fv",
     };
     const prog = this.program;
+    const getRelMouseData = function(event, target) {
+      target = target || event.target;
+      let rect = target.getBoundingClientRect();
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      };
+    };
+    const getCanvasMouseData = function(event, target) {
+      target = target || event.target;
+      var pos = getRelMouseData(event, target);
+      pos.x *= target.width / target.clientWidth;
+      pos.y *= target.height / target.clientHeight;
+      return pos;
+    };
+    const mouse = [0.0, 0.0, 0.0, 0.0];
+    gl.canvas.addEventListener('mousemove', event => {
+      const rawPos = getCanvasMouseData(event, gl.canvas);
+      const preMouse = {
+        x: rawPos.x,
+        y: Math.floor((1 - rawPos.y / gl.canvas.height) * gl.canvas.height)
+      }
+      if (event.buttons === 1) {
+        mouse[0] = preMouse.x;
+        mouse[1] = preMouse.y;
+        mouse[3] = Math.abs(mouse[3]) * -1;
+        console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
+      }
+    });
+    gl.canvas.addEventListener('mousedown', event => {
+      const rawPos = getCanvasMouseData(event, gl.canvas);
+      const preMouse = {
+        x: rawPos.x,
+        y: Math.floor((1 - rawPos.y / gl.canvas.height) * gl.canvas.height)
+      }
+      mouse[0] = preMouse.x;
+      mouse[1] = preMouse.y;
+      mouse[2] = preMouse.x;
+      mouse[3] = preMouse.y;
+      console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
+    })
+    gl.canvas.addEventListener('mouseup', event => {
+      mouse[2] = Math.abs(mouse[2]) * -1;
+      mouse[3] = Math.abs(mouse[3]) * -1;
+      console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
+    });
     const render = function(timestamp) {
       if (this.ready)
         this.time = (Date.now() - this.startTime);
@@ -231,6 +277,7 @@ export class SimpleShader {
       );
       const res = [this.canvas.width, this.canvas.height];
       const userUnis = this.uniforms;
+      const date = new Date();
       Object.entries(data).forEach((uniformType) => {
         const key = uniformType[0];
         if (uniformFunc[key]) {
@@ -262,11 +309,12 @@ export class SimpleShader {
         //w mouse click state
       ]);*/
       gl.uniform4fv(gl.getUniformLocation(prog, "date"), [
-        Date.getFullYear(),
-        Date.getMonth(),
-        Date.getDate(),
-        Date.getHours()*3600 + Date.getMinutes()*60 + Date.getSeconds() + Date.getMilliseconds()
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+        date.getHours()*3600 + date.getMinutes()*60 + date.getSeconds() + date.getMilliseconds()
       ]);
+      gl.uniform4fv(gl.getUniformLocation(prog, "mouse"), mouse);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       if (this.ready)
         window.requestAnimationFrame(this.render);
