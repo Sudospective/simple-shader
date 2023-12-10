@@ -338,7 +338,7 @@ export class SimpleShader {
             date.getFullYear(),
             date.getMonth(),
             date.getDate(),
-            date.getHours()*3600 + date.getMinutes()*60 + date.getSeconds() + date.getMilliseconds()*0.001
+            date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds() + date.getMilliseconds() * 0.001
           ]);
           gl.uniform4fv(gl.getUniformLocation(prog, "mouse"), mouse);
           gl.drawArrays(gl.TRIANGLES, 0, 6);
