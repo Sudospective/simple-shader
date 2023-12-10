@@ -133,8 +133,8 @@ export class SimpleShader {
       .then((res) => {
         vertSrc = res[0];
         fragSrc = res[1];
-        console.log(vertSrc);
-        console.log(fragSrc);
+        //console.log(vertSrc);
+        //console.log(fragSrc);
         const vert = gl.createShader(gl.VERTEX_SHADER);
         gl.shaderSource(vert, vertSrc);
         gl.compileShader(vert);
