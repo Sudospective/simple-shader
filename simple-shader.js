@@ -189,10 +189,10 @@ export class SimpleShader {
         ]), gl.STATIC_DRAW);
         if (data.sampler2D) {
           var texId = 0;
-          Object.entries(data.sampler2D).forEach((sampler2D) => {
-            unis[sampler2D[0]] = { textureIndex: texId++ };
+          Object.entries(data.sampler2D).forEach((sampler) => {
+            unis[sampler[0]] = { textureIndex: texId++ };
             const image = new Image();
-            image.src = sampler2D[1];
+            image.src = sampler[1];
             const assignTexture = function(obj) {
               const tex = gl.createTexture();
               obj.texture = tex;
@@ -206,8 +206,8 @@ export class SimpleShader {
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
               });
             };
-            image.onload = assignTexture(unis[sampler2D[0]]);
-            unis[sampler2D[0]].image = image;
+            image.onload = assignTexture(unis[sampler[0]]);
+            unis[sampler[0]].image = image;
           });
         };
         gl.viewport(0, 0, this.canvas.width, this.canvas.height);
@@ -238,7 +238,7 @@ export class SimpleShader {
           return pos;
         };
         const mouse = [0.0, 0.0, 0.0, 0.0];
-        gl.canvas.addEventListener('mousemove', event => {
+        this.canvas.addEventListener('mousemove', event => {
           const rawPos = getCanvasMouseData(event, gl.canvas);
           const preMouse = {
             x: rawPos.x,
@@ -251,7 +251,7 @@ export class SimpleShader {
             //console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
           }
         });
-        gl.canvas.addEventListener('mousedown', event => {
+        this.canvas.addEventListener('mousedown', event => {
           const rawPos = getCanvasMouseData(event, gl.canvas);
           const preMouse = {
             x: rawPos.x,
@@ -263,7 +263,7 @@ export class SimpleShader {
           mouse[3] = preMouse.y;
           //console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
         })
-        gl.canvas.addEventListener('mouseup', event => {
+        this.canvas.addEventListener('mouseup', event => {
           mouse[2] = Math.abs(mouse[2]) * -1;
           mouse[3] = Math.abs(mouse[3]) * -1;
           //console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
@@ -273,11 +273,21 @@ export class SimpleShader {
             this.time = (Date.now() - this.startTime);
           else
             this.time = 0.0;
+          const res = [gl.canvas.width, gl.canvas.height];
+          gl.viewport(0, 0, res[0], res[1]);
           gl.clearColor(0, 0, 0, 1);
           gl.clear(gl.COLOR_BUFFER_BIT);
           gl.useProgram(prog);
           gl.enableVertexAttribArray(posLoc);
           gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+            0.0, 0.0,
+            res[0], 0.0,
+            0.0, res[1],
+            0.0, res[1],
+            res[0], 0.0,
+            res[0], res[1],
+          ]), gl.DYNAMIC_DRAW);
           gl.vertexAttribPointer(
             posLoc,
             2,
@@ -296,7 +306,6 @@ export class SimpleShader {
             0,
             0
           );
-          const res = [this.canvas.width, this.canvas.height];
           const userUnis = this.uniforms;
           const date = new Date();
           Object.entries(data).forEach((uniformType) => {

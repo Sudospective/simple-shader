@@ -19,15 +19,17 @@
     </style>
   </head>
   <body>
-    <canvas id="simple-shader" width="1920" height="1080"></canvas>
+    <canvas id="simple-shader" width="100%" height="100%"></canvas>
     <script async type="module">
-      const startTime = Date.now();
       const canvas = document.getElementById("simple-shader");
       import { SimpleShader as Shader } from "/simple-shader.js";
       const def = await new Shader("simple-shader", {
-        frag: "/examples/glitch.frag"
+        frag: "/time.frag",
+        sampler2D: {
+          sampler0: "/font.png"
+        }
       });
-      def.play(startTime);
+      def.play();
       let width = window.innerWidth;
       let height = window.innerHeight;
       function changeCanvasSize() {
