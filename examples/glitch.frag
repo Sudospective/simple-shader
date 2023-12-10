@@ -1,8 +1,8 @@
+#version 300 es
+
 // Author: jeyko (ported by Spax)
 // Title: Day 490
 // https://www.shadertoy.com/view/NdlXzs
-
-#version 300 es
 
 precision lowp float;
 

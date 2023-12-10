@@ -23,9 +23,9 @@
     <script async type="module">
       const startTime = Date.now();
       const canvas = document.getElementById("simple-shader");
-      import { SimpleShader as Shader, fetchShader } from "/simple-shader.js";
+      import { SimpleShader as Shader } from "/simple-shader.js";
       const def = new Shader("simple-shader", {
-        frag: fetchShader("/examples/glitch.frag"),
+        frag: "/examples/glitch.frag",
       });
       def.play(startTime);
       let width = window.innerWidth;
