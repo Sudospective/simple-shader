@@ -1,5 +1,5 @@
 /*
-  simple-shader.js
+  simple-shader.js v0.1
   written by Sudospective
   special thanks to Spax for debugging and feature requests
   
@@ -66,9 +66,9 @@ frag2: `#version 300 es
   }
 `
 };
-const fetchShader = async function(path) {
+export async function fetchShader(path) {
   const text = await fetch(path)
-    .then(res => res.text());
+    .then(res => res.text()).catch((e) => console.error(e));
   console.log(text);
   return text;
 }
@@ -308,17 +308,11 @@ export class SimpleShader {
       });
       gl.uniform2fv(gl.getUniformLocation(prog, "resolution"), [res[0], res[1]]);
       gl.uniform1f(gl.getUniformLocation(prog, "time"), this.time * 0.001);
-      /*gl.uniform4fv(gl.getUniformLocation(prog, "mouse"), [
-        //mouse x position (while mouse is down, else last position)
-        //mouse y position (while mouse is down, else last position)
-        //z mouse click state https://shadertoyunofficial.wordpress.com/2016/07/20/special-shadertoy-features/
-        //w mouse click state
-      ]);*/
       gl.uniform4fv(gl.getUniformLocation(prog, "date"), [
         date.getFullYear(),
-        date.getMonth() + 1,
+        date.getMonth(),
         date.getDate(),
-        date.getHours()*3600 + date.getMinutes()*60 + date.getSeconds() + date.getMilliseconds()
+        date.getHours()*3600000 + date.getMinutes()*60000 + date.getSeconds()*1000 + date.getMilliseconds()
       ]);
       gl.uniform4fv(gl.getUniformLocation(prog, "mouse"), mouse);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
