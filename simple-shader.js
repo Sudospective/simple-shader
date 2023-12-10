@@ -66,6 +66,12 @@ frag2: `#version 300 es
   }
 `
 };
+const fetchShader = async function(path) {
+  const text = await fetch(path)
+    .then(res => res.text());
+  console.log(text);
+  return text;
+}
 export class SimpleShader {
   static defaultVertex(ver) {
     return src["vert" + ver];
@@ -110,8 +116,8 @@ export class SimpleShader {
         gl.getExtension(ext);
       });
     };
-    const vertSrc = data.vert || SimpleShader.defaultVertex(this.version);
-    const fragSrc = data.frag || SimpleShader.defaultFragment(this.version);
+    const vertSrc = fetchShader(data.vert) || SimpleShader.defaultVertex(this.version);
+    const fragSrc = fetchShader(data.frag) || SimpleShader.defaultFragment(this.version);
     //console.log(vertSrc);
     //console.log(fragSrc);
     const vert = gl.createShader(gl.VERTEX_SHADER);
@@ -310,7 +316,7 @@ export class SimpleShader {
       ]);*/
       gl.uniform4fv(gl.getUniformLocation(prog, "date"), [
         date.getFullYear(),
-        date.getMonth(),
+        date.getMonth() + 1,
         date.getDate(),
         date.getHours()*3600 + date.getMinutes()*60 + date.getSeconds() + date.getMilliseconds()
       ]);
