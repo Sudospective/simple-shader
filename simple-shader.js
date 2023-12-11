@@ -99,11 +99,11 @@ export class SimpleShader {
     video.addEventListener("playing", () => {
       playing = true;
       checkReady();
-    });
+    }, true);
     video.addEventListener("timeupdate", () => {
       timeUpdate = true;
       checkReady();
-    });
+    }, true);
     video.src = path;
     video.play();
     return video;
@@ -242,6 +242,7 @@ export class SimpleShader {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                  
               });
             };
             image.onload = assignTexture(unis[sampler[0]]);
