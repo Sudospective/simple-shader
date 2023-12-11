@@ -73,6 +73,41 @@ export class SimpleShader {
   static defaultFragment(ver) {
     return src["frag" + ver];
   };
+  static setupVideo(path) {
+    // TODO: Fill with more supported video extensions
+    const supported = {
+      mp4: true
+    }
+    const ext = path.substring(path.lastIndexOf(".") + 1);
+    if (!supported[ext]) {
+      const image = new Image();
+      image.src = path;
+      return image;
+    }
+    const video = document.createElement("video");
+    video.copyReady = false;
+    let playing = false;
+    let timeUpdate = false;
+    function checkReady() {
+      if (playing && timeUpdate) {
+        video.copyReady = true; // haha weeeeeee
+      }
+    }
+    video.playsInline = true;
+    video.muted = true;
+    video.loop = true;
+    video.addEventListener("playing", () => {
+      playing = true;
+      checkReady();
+    });
+    video.addEventListener("timeupdate", () => {
+      timeUpdate = true;
+      checkReady();
+    });
+    video.src = path;
+    video.play();
+    return video;
+  };
   ready = false;
   initTime = Date.now();
   time = 0.0;
@@ -191,8 +226,11 @@ export class SimpleShader {
           var texId = 0;
           Object.entries(data.sampler2D).forEach((sampler) => {
             unis[sampler[0]] = { textureIndex: texId++ };
-            const image = new Image();
-            image.src = sampler[1];
+            const image = SimpleShader.setupVideo(sampler[1]) || new Image();
+            if (!image.src) {
+              image.src = sampler[1];
+              image.copyReady = true;
+            }
             const assignTexture = function(obj) {
               const tex = gl.createTexture();
               obj.texture = tex;
@@ -316,16 +354,20 @@ export class SimpleShader {
                 const uniformLoc = gl.getUniformLocation(prog, uniform[0]);
                 gl[uniformFunc[key]](uniformLoc, uniform[1]);
               });
-            } else if (key === "sampler2D") {
+            }
+            else if (key === "sampler2D") {
               Object.entries(uniformType[1]).forEach((uniform) => {
                 const image = unis[uniform[0]].image;
-                image.src = userUnis[uniform[0]] || image.src;
+                if (!image.src) image.src = uniform[1];
+                //image.src = userUnis[uniform[0]] || image.src;
                 image.width = res[0];
                 image.height = res[1];
                 const texLoc = gl.getUniformLocation(prog, uniform[0]);
                 const idx = unis[uniform[0]].textureIndex;
                 gl.activeTexture(gl.TEXTURE0 + idx);
                 gl.bindTexture(gl.TEXTURE_2D, unis[uniform[0]].texture);
+                if (image.copyReady)
+                  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
                 gl.uniform1i(texLoc, idx);
               });
             };
