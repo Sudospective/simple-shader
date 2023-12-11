@@ -240,7 +240,7 @@ export class SimpleShader {
           return pos;
         };
         const mouse = [0.0, 0.0, 0.0, 0.0];
-        this.canvas.addEventListener('mousemove', event => {
+        this.canvas.addEventListener("mousemove", event => {
           const rawPos = getCanvasMouseData(event, gl.canvas);
           const preMouse = {
             x: rawPos.x,
@@ -253,7 +253,7 @@ export class SimpleShader {
             //console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
           }
         });
-        this.canvas.addEventListener('mousedown', event => {
+        this.canvas.addEventListener("mousedown", event => {
           const rawPos = getCanvasMouseData(event, gl.canvas);
           const preMouse = {
             x: rawPos.x,
@@ -265,7 +265,7 @@ export class SimpleShader {
           mouse[3] = preMouse.y;
           //console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
         })
-        this.canvas.addEventListener('mouseup', event => {
+        this.canvas.addEventListener("mouseup", event => {
           mouse[2] = Math.abs(mouse[2]) * -1;
           mouse[3] = Math.abs(mouse[3]) * -1;
           //console.log(mouse[0], mouse[1], mouse[2], mouse[3]);
