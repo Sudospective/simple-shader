@@ -1,5 +1,5 @@
 /*
-  simple-shader.js v0.3
+  simple-shader.js v0.3.2
   written by Sudospective
   special thanks to Spax for debugging and feature requests
   
@@ -127,11 +127,11 @@ export class SimpleShader {
       console.log("Unable to get canvas with ID", canvasId);
       return null;
     };
-        this.context = this.canvas.getContext("webgl2");
-    this.version = "2";
+    this.context = this.canvas.getContext("webgl2");
+    this.version = 2;
     if (!this.context) {
       this.context = this.canvas.getContext("webgl");
-      this.version = "1";
+      this.version = 1;
     };
     if (!this.context) {
       console.log("Unable to get GL context from canvas with ID", canvasId);
@@ -159,6 +159,8 @@ export class SimpleShader {
       //console.log(text);
       return text;
     }
+    //const vertProm = (data.vert.substring(0,1)==="#") ? data.vert : fetchVert(data.vert);
+    //const fragProm = (data.frag.substring(0,1)==="#") ? data.frag : fetchFrag(data.frag);
     const vertProm = fetchVert(data.vert);
     const fragProm = fetchFrag(data.frag);
     let vertSrc = "";

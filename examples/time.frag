@@ -35,8 +35,7 @@ ivec3 inm[2];
 ivec2 idt[6];
 const float pi = 3.14159;
 
-void CylHit (vec3 ro, vec3 rd)
-{
+void CylHit (vec3 ro, vec3 rd) {
   vec3 s;
   float a, ai, b, w, ws, srdy;
   dCylIn = dstFar;
@@ -70,8 +69,7 @@ void CylHit (vec3 ro, vec3 rd)
   }
 }
 
-float FontTexDf (vec2 p)
-{
+float FontTexDf (vec2 p) {
   vec3 tx;
   ivec2 ip;
   float d;
@@ -81,15 +79,14 @@ float FontTexDf (vec2 p)
   if (ip.x == 0 && ip.y == 0) ic = GetTxChar (idTxt);
   if (ic != 0) {
     tx = texture (sampler0, mod ((vec2 (mod (float (ic), 16.),
-       15. - floor (float (ic) / 16.)) + fract (p)) * (1. / 16.), 1.)).gba - 0.5;
+      15. - floor (float (ic) / 16.)) + fract (p)) * (1. / 16.), 1.)).gba - 0.5;
     qnFnt = vec2 (tx.r, - tx.g);
     d = tx.b + 1. / 256.;
   } else d = 1.;
   return d;
 }
 
-float ObjRayT (vec3 ro, vec3 rd)
-{
+float ObjRayT (vec3 ro, vec3 rd) {
   vec3 p, rdi;
   vec2 srd, h;
   float dHit, dLim, d;
@@ -114,8 +111,7 @@ float ObjRayT (vec3 ro, vec3 rd)
   return dHit;
 }
 
-float BlkHit (vec3 ro, vec3 rd, vec3 bSize)
-{
+float BlkHit (vec3 ro, vec3 rd, vec3 bSize) {
   vec3 v, tm, tp;
   float dMin, dn, df;
   if (rd.x == 0.) rd.x = 0.001;
@@ -134,16 +130,14 @@ float BlkHit (vec3 ro, vec3 rd, vec3 bSize)
   return dMin;
 }
 
-float ObjDf (vec3 p)
-{
+float ObjDf (vec3 p) {
   vec3 q;
   q = p;
   q.y = abs (q.y) - bCylHt;
   return PrTorusDf (q.xzy, 0.02, bCylRad);
 }
 
-float ObjRay (vec3 ro, vec3 rd)
-{
+float ObjRay (vec3 ro, vec3 rd) {
   float dHit, d;
   dHit = 0.;
   for (int j = 0; j < 100; j ++) {
@@ -154,8 +148,7 @@ float ObjRay (vec3 ro, vec3 rd)
   return dHit;
 }
 
-vec3 ObjNf (vec3 p)
-{
+vec3 ObjNf (vec3 p) {
   vec4 v;
   const vec3 e = vec3 (0.001, -0.001, 0.);
   v = vec4 (ObjDf (p + e.xxx), ObjDf (p + e.xyy), ObjDf (p + e.yxy),
@@ -165,8 +158,7 @@ vec3 ObjNf (vec3 p)
 
 #define SQRT3 1.73205
 
-vec2 PixToHex (vec2 p)
-{
+vec2 PixToHex (vec2 p) {
   vec3 c, r, dr;
   c.xz = vec2 ((1./SQRT3) * p.x - (1./3.) * p.y, (2./3.) * p.y);
   c.y = - c.x - c.z;
@@ -176,13 +168,11 @@ vec2 PixToHex (vec2 p)
   return r.xz;
 }
 
-vec2 HexToPix (vec2 h)
-{
+vec2 HexToPix (vec2 h) {
   return vec2 (SQRT3 * (h.x + 0.5 * h.y), (3./2.) * h.y);
 }
 
-void HexVorInit ()
-{
+void HexVorInit () {
   vec3 e = vec3 (1., 0., -1.);
   gVec[0] = e.yy;
   gVec[1] = e.xy;
@@ -194,8 +184,7 @@ void HexVorInit ()
   for (int k = 0; k < 7; k ++) hVec[k] = HexToPix (gVec[k]);
 }
 
-vec4 HexVor (vec2 p)
-{
+vec4 HexVor (vec2 p) {
   vec4 sd, udm;
   vec2 ip, fp, d, u;
   float amp, a;
@@ -218,8 +207,7 @@ vec4 HexVor (vec2 p)
   return vec4 (SmoothMin (sd.y, sd.z, 0.3) - sd.x, udm.xy, Hashfv2 (udm.zw));
 }
 
-vec3 BgCol (vec3 ro, vec3 rd)
-{
+vec3 BgCol (vec3 ro, vec3 rd) {
   vec4 vc;
   vec3 vn, col;
   float s;
@@ -242,8 +230,7 @@ vec3 BgCol (vec3 ro, vec3 rd)
   return col;
 }
 
-vec3 ShowScene (vec3 ro, vec3 rd)
-{
+vec3 ShowScene (vec3 ro, vec3 rd) {
   vec3 col, vn, qtTxt, tro, trd, trdd, q, qt, ds;
   float dstTxt, dstBlk, dstObj, db, d, ang, angTxt, angRot, aTw, rad, twFac, sdTxt;
   fntSize = vec2 (1.7, 0.6);
@@ -316,8 +303,7 @@ vec3 ShowScene (vec3 ro, vec3 rd)
   return clamp (col, 0., 1.);
 }
 
-void main()
-{
+void main() {
   mat3 vuMat;
   vec4 mPtr;
   vec3 ro, rd, col;
@@ -352,8 +338,7 @@ void main()
   fragColor = vec4 (clamp (col, 0., 1.), 1.);
 }
 
-float PrTorusDf (vec3 p, float ri, float rc)
-{
+float PrTorusDf (vec3 p, float ri, float rc) {
   return length (vec2 (length (p.xy) - rc, p.z)) - ri;
 }
 
@@ -455,8 +440,7 @@ float PrTorusDf (vec3 p, float ri, float rc)
 #define _RBRC  C(0x7D)
 #define _TILDE C(0x7E)
 
-ivec3 MName (int i)
-{
+ivec3 MName (int i) {
   ivec3 m;
   if      (i == 0)  m = ivec3 (_J, _a, _n);
   else if (i == 1)  m = ivec3 (_F, _e, _b);
@@ -473,8 +457,7 @@ ivec3 MName (int i)
   return m;
 }
 
-ivec3 DName (int i)
-{
+ivec3 DName (int i) {
   ivec3 d;
   if      (i == 0)  d = ivec3 (_S, _u, _n);
   else if (i == 1)  d = ivec3 (_M, _o, _n);
@@ -486,8 +469,7 @@ ivec3 DName (int i)
   return d;
 }
 
-int DWk (vec3 ymd)
-{
+int DWk (vec3 ymd) {
   ivec3 d;
   vec2 cy;
   ymd.y += 1.;
@@ -503,8 +485,7 @@ int DWk (vec3 ymd)
 #define DIG2(v) _0 + ivec2 (vec2 (floor ((v) / 10.), mod ((v), 10.)))
 #define T(c) _ic = (_nc -- == 0) ? (c) : _ic;
 
-void DTimeSet (vec4 d)
-{
+void DTimeSet (vec4 d) {
   idt[0] = DIG2 (floor (d.x / 100.));
   idt[1] = DIG2 (mod (d.x, 100.));
   idt[2] = DIG2 (d.z);
@@ -515,8 +496,7 @@ void DTimeSet (vec4 d)
   inm[1] = DName (DWk (d.xyz));
 }
 
-int GetTxChar (int _nc)
-{
+int GetTxChar (int _nc) {
   int _ic;
   _ic = 0;
   T(_SP) T(inm[1].x) T(inm[1].y) T(inm[1].z)T(_SP) T(idt[2].x) T(idt[2].y) T(_MINUS) 
@@ -529,26 +509,22 @@ const vec4 cHashA4 = vec4 (0., 1., 57., 58.);
 const vec3 cHashA3 = vec3 (1., 57., 113.);
 const float cHashM = 43758.54;
 
-float Hashfv2 (vec2 p)
-{
+float Hashfv2 (vec2 p) {
   return fract (sin (dot (p, cHashA3.xy)) * cHashM);
 }
 
-vec2 Hashv2v2 (vec2 p)
-{
+vec2 Hashv2v2 (vec2 p) {
   const vec2 cHashVA2 = vec2 (37.1, 61.7);
   const vec2 e = vec2 (1., 0.);
   return fract (sin (vec2 (dot (p + e.yy, cHashVA2),
      dot (p + e.xy, cHashVA2))) * cHashM);
 }
 
-vec4 Hashv4f (float p)
-{
+vec4 Hashv4f (float p) {
   return fract (sin (p + cHashA4) * cHashM);
 }
 
-float Noisefv2 (vec2 p)
-{
+float Noisefv2 (vec2 p) {
   vec4 t;
   vec2 ip, fp;
   ip = floor (p);
@@ -558,8 +534,7 @@ float Noisefv2 (vec2 p)
   return mix (mix (t.x, t.y, fp.x), mix (t.z, t.w, fp.x), fp.y);
 }
 
-float Fbm2 (vec2 p)
-{
+float Fbm2 (vec2 p) {
   float f, a;
   f = 0.;
   a = 1.;
@@ -571,8 +546,7 @@ float Fbm2 (vec2 p)
   return f * (1. / 1.9375);
 }
 
-float Fbmn (vec3 p, vec3 n)
-{
+float Fbmn (vec3 p, vec3 n) {
   vec3 s = vec3 (0.);
   float a = 1.;
   for (int i = 0; i < 5; i ++) {
@@ -583,8 +557,7 @@ float Fbmn (vec3 p, vec3 n)
   return dot (s, abs (n));
 }
 
-vec3 VaryNf (vec3 p, vec3 n, float f)
-{
+vec3 VaryNf (vec3 p, vec3 n, float f) {
   vec3 g;
   float s;
   const vec3 e = vec3 (0.1, 0., 0.);
@@ -594,26 +567,22 @@ vec3 VaryNf (vec3 p, vec3 n, float f)
   return normalize (n + f * (g - n * dot (n, g)));
 }
 
-vec3 HsvToRgb (vec3 c)
-{
+vec3 HsvToRgb (vec3 c) {
   vec3 p;
   p = abs (fract (c.xxx + vec3 (1., 2./3., 1./3.)) * 6. - 3.);
   return c.z * mix (vec3 (1.), clamp (p - 1., 0., 1.), c.y);
 }
 
-float SmoothMin (float a, float b, float r)
-{
+float SmoothMin (float a, float b, float r) {
   float h;
   h = clamp (0.5 + 0.5 * (b - a) / r, 0., 1.);
   return mix (b, a, h) - r * h * (1. - h);
 }
 
-float SmoothBump (float lo, float hi, float w, float x)
-{
+float SmoothBump (float lo, float hi, float w, float x) {
   return (1. - smoothstep (hi - w, hi + w, x)) * smoothstep (lo - w, lo + w, x);
 }
 
-vec2 Rot2D (vec2 q, float a)
-{
+vec2 Rot2D (vec2 q, float a) {
   return q * cos (a) + q.yx * sin (a) * vec2 (-1., 1.);
 }

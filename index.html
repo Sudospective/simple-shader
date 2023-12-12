@@ -16,20 +16,24 @@
         width: 100%;
         height: 100%;
       }
+      p {
+        color: white;
+        position: absolute;
+        font: arial;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        user-select: none;
+      }
     </style>
   </head>
   <body>
-    <canvas id="simple-shader" width="100%" height="100%"></canvas>
+    <canvas id="simple-shader" width="0" height="0"></canvas>
+    <p id="click-prompt">Click anywhere to start playing</p>
     <script async type="module">
-      const canvas = document.getElementById("simple-shader");
       import { SimpleShader as Shader } from "./simple-shader.js";
-      const def = new Shader("simple-shader", {
-        frag: "./examples/glitchboi.frag",
-        sampler2D: {
-          sampler0: "./examples/gamer-sudo.mp4"
-        }
-      });
-      def.play();
+      const canvas = document.getElementById("simple-shader");
+      const prompt = document.getElementById("click-prompt");
       let width = window.innerWidth;
       let height = window.innerHeight;
       function changeCanvasSize() {
@@ -37,11 +41,43 @@
         height = window.innerHeight;
         canvas.width = width;
         canvas.height = height;
-        //def.play(startTime);
       }
-      canvas.onload = changeCanvasSize;
+      canvas.onload = changeCanvasSize();
       window.onresize = changeCanvasSize;
-      changeCanvasSize();
+      let clicked = false;
+      document.onclick = function() {
+        if (!clicked) {
+          clicked = true;
+          const frags = ["glitchboi", "linedither", "scatter", "image-glitcher", "zx-spectrum", "fake-pixelsort"];
+          const random = Math.floor(Math.random()*frags.length);
+          const def = new Shader("simple-shader", {
+            frag: `./examples/${frags[random]}.frag`,
+            muted: false,
+            loop: true,
+            sampler2D: {
+              sampler0: "./examples/gamer-sudo.mp4"
+            }
+          });
+          def.play();
+          prompt.style.display = "none";
+        }
+      }
+      /*TODO: add a working toggle
+      let toggled = true;
+      document.body.onkeydown = function(e) {
+        if (!clicked && (e.key === " " ||
+            e.code === "Space" ||
+            e.keyCode === 32
+        )) {
+          if (toggled) {
+            toggled = false;
+            //def.stop();
+          } else {
+            toggled = true;
+            //def.play();
+          }
+        }
+      }*/
     </script>
   </body>
 </html>
