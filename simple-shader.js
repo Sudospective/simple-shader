@@ -73,8 +73,12 @@ export class SimpleShader {
   static defaultFragment(ver) {
     return src["frag" + ver];
   };
-  static setupVideo(path, params) {
-    params = params || {};
+  static setupTexture(path, params) {
+    params = params || {
+      playsInline: true,
+      muted: true,
+      loop: true,
+    };
     // TODO: Fill with more supported video extensions
     const supported = {
       mp4: true
@@ -94,9 +98,9 @@ export class SimpleShader {
         video.copyReady = true; // haha weeeeeee
       }
     }
-    video.playsInline = params.playsInline || true;
-    video.muted = params.muted || true;
-    video.loop = params.loop || true;
+    video.playsInline = params.playsInline;
+    video.muted = params.muted;
+    video.loop = params.loop;
     video.addEventListener("playing", () => {
       playing = true;
       checkReady();
@@ -229,11 +233,11 @@ export class SimpleShader {
           var texId = 0;
           Object.entries(data.sampler2D).forEach((sampler) => {
             unis[sampler[0]] = { textureIndex: texId++ };
-            const image = SimpleShader.setupVideo(sampler[1], {
-              playsInline: data.playsInline,
-              muted: data.muted,
-              loop: data.loop
-            }) || new Image();
+            const image = SimpleShader.setupTexture(sampler[1], {
+              playsInline: (data.playsInline !== null) ? data.playsInline : true,
+              muted: (data.muted !== null) ? data.muted : true,
+              loop: (data.loop !== null) ? data.loop : true
+            });
             const assignTexture = function(obj) {
               const tex = gl.createTexture();
               obj.texture = tex;
