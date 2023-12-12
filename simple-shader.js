@@ -1,5 +1,5 @@
 /*
-  simple-shader.js v0.2.5
+  simple-shader.js v0.3
   written by Sudospective
   special thanks to Spax for debugging and feature requests
   
