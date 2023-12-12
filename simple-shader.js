@@ -73,7 +73,8 @@ export class SimpleShader {
   static defaultFragment(ver) {
     return src["frag" + ver];
   };
-  static setupVideo(path) {
+  static setupVideo(path, params) {
+    params = params || {};
     // TODO: Fill with more supported video extensions
     const supported = {
       mp4: true
@@ -93,9 +94,9 @@ export class SimpleShader {
         video.copyReady = true; // haha weeeeeee
       }
     }
-    video.playsInline = true;
-    video.muted = true;
-    video.loop = true;
+    video.playsInline = params.playsInline || true;
+    video.muted = params.muted || true;
+    video.loop = params.loop || true;
     video.addEventListener("playing", () => {
       playing = true;
       checkReady();
@@ -228,11 +229,11 @@ export class SimpleShader {
           var texId = 0;
           Object.entries(data.sampler2D).forEach((sampler) => {
             unis[sampler[0]] = { textureIndex: texId++ };
-            const image = SimpleShader.setupVideo(sampler[1]) || new Image();
-            if (!image.src) {
-              image.src = sampler[1];
-              image.copyReady = true;
-            }
+            const image = SimpleShader.setupVideo(sampler[1], {
+              playsInline: data.playsInline,
+              muted: data.muted,
+              loop: data.loop
+            }) || new Image();
             const assignTexture = function(obj) {
               const tex = gl.createTexture();
               obj.texture = tex;
@@ -246,7 +247,13 @@ export class SimpleShader {
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
               });
             };
-            image.onload = assignTexture(unis[sampler[0]]);
+            if (!image.src) {
+              image.src = sampler[1];
+              image.copyReady = true;
+              image.onload = assignTexture(unis[sampler[0]]);
+            }
+            else
+              image.onloadstart = assignTexture(unis[sampler[0]]);
             unis[sampler[0]].image = image;
           });
         };
@@ -374,7 +381,7 @@ export class SimpleShader {
               });
             };
           });
-          gl.uniform2fv(gl.getUniformLocation(prog, "resolution"), [res[0], res[1]]);
+          gl.uniform2fv(gl.getUniformLocation(prog, "resolution"), res);
           gl.uniform1f(gl.getUniformLocation(prog, "time"), this.time * 0.001);
           gl.uniform4fv(gl.getUniformLocation(prog, "date"), [
             date.getFullYear(),
