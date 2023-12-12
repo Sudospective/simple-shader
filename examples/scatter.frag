@@ -7,6 +7,8 @@ uniform sampler2D sampler0;
 
 out vec4 fragColor;
 
+//originally written by Spax
+
 //rgb2hsv and hsv2rgb written by XeroOl
 //All components are in the range [0...1], including hue.
 vec3 rgb2hsv(vec3 c) {
@@ -37,8 +39,7 @@ float random1d(float seed) {
 }
 
 void main() {
-  //speed is like this cuz I was syncing it to Virtual Insanity
-  float speed = 46.0/60.0;
+  float speed = 1.;
   float offset = -3.65;
   float seed = max(0.0, floor(time*speed+offset));
   vec2 uv = gl_FragCoord.xy/resolution.xy;

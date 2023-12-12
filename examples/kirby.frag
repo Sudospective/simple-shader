@@ -11,25 +11,21 @@ uniform float time;
 
 out vec4 fragColor;
 
-float smin( float a, float b, float k )
-{
+float smin( float a, float b, float k ) {
   float h = clamp( 0.5+0.5*(b-a)/k, 0.0, 1.0 );
   return mix( b, a, h ) - k*h*(1.0-h);
 }
 
 
-float smax(float a,float b, float k)
-{
+float smax(float a,float b, float k) {
   return -smin(-a,-b,k);
 }
 
-mat2 rotmat(float a)
-{
+mat2 rotmat(float a) {
   return mat2(cos(a),sin(a),-sin(a),cos(a));
 }
 
-float shoesDist(vec3 p)
-{
+float shoesDist(vec3 p) {
   vec3 op=p;
   float d=1e4;
 
@@ -53,8 +49,7 @@ float shoesDist(vec3 p)
   return d;
 }
 
-float sceneDist(vec3 p)
-{
+float sceneDist(vec3 p) {
   vec3 op=p;
   float d=shoesDist(p);
 
@@ -94,19 +89,19 @@ float sceneDist(vec3 p)
 
 
 
-vec3 sceneNorm(vec3 p)
-{
+vec3 sceneNorm(vec3 p) {
   vec3 e=vec3(1e-3,0,0);
   float d = sceneDist(p);
-  return normalize(vec3(sceneDist(p + e.xyy) - sceneDist(p - e.xyy),
-              sceneDist(p + e.yxy) - sceneDist(p - e.yxy),
-              sceneDist(p + e.yyx) - sceneDist(p - e.yyx)));
+  return normalize(vec3(
+    sceneDist(p + e.xyy) - sceneDist(p - e.xyy),
+    sceneDist(p + e.yxy) - sceneDist(p - e.yxy),
+    sceneDist(p + e.yyx) - sceneDist(p - e.yyx)
+  ));
 }
 
 
 // from simon green and others
-float ambientOcclusion(vec3 p, vec3 n)
-{
+float ambientOcclusion(vec3 p, vec3 n) {
   const int steps = 4;
   const float delta = 0.15;
 
@@ -123,8 +118,7 @@ float ambientOcclusion(vec3 p, vec3 n)
 // a re-shaped cosine, to make the peaks more pointy
 float cos2(float x){return cos(x-sin(x)/3.);}
 
-float starShape(vec2 p)
-{
+float starShape(vec2 p) {
   float a=atan(p.y,p.x)+time/3.;
   float l=pow(length(p),.8);
   float star=1.-smoothstep(0.,(3.-cos2(a*5.*2.))*.02,l-.5+cos2(a*5.)*.1);
@@ -132,8 +126,7 @@ float starShape(vec2 p)
 }
 
 
-void main()
-{
+void main() {
   // Normalized pixel coordinates (from 0 to 1)
   vec2 uv = gl_FragCoord.xy/resolution;
 
@@ -151,8 +144,7 @@ void main()
 
   // primary ray
   float t=0.,d=0.;
-  for(int i=0;i<80;++i)
-  {
+  for(int i=0;i<80;++i) {
     d=sceneDist(ro+rd*t);
     if(d<1e-4)
       break;
@@ -168,14 +160,13 @@ void main()
   vec3 n=sceneNorm(rp);
   float st=5e-3;
   vec3 ld=normalize(vec3(2,4,-4));
-  for(int i=0;i<20;++i)
-  {
-  d=sceneDist(rp+ld*st);
-  if(d<1e-5)
-    break;
-  if(st>5.)
-    break;
-  st+=d*2.;
+  for(int i=0;i<20;++i) {
+    d=sceneDist(rp+ld*st);
+    if(d<1e-5)
+      break;
+    if(st>5.)
+      break;
+    st+=d*2.;
   }
 
   // ambient occlusion and shadowing

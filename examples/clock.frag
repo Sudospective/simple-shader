@@ -41,14 +41,13 @@ out vec4 fragColor;
 // Two-digit render
 #define Z(n) ; D(n % 10) D(n / 10)
 
-void main()
-{
+void main() {
   vec2 U = gl_FragCoord.xy;
     vec2 R = resolution.xy;
     U += U - R;
     U /= R.y / 3.; // Global scaling with aspect ratio correction
     fragColor-=fragColor; // Zero the pixel
-
+    
     float x = U.x - U.y * .2 - 2.8, // Slight skew to slant the digits
           y = --U.y;
     ivec4 i = ivec4(date); // Convert everything to integers
@@ -65,27 +64,27 @@ void main()
     
     // Hours
     Z(t)
-
+    
     // Smaller digits
     x /= .6;
     y /= .6;
     R *= .6;
-
+    
     // Centiseconds
     x -= 14.;
     y += .53
     Z(i.w)
-
+    
     // Day (preceded by a hyphen)
     x -= .8;
     y += 3.
     Z(i.z)
     H(1)
-
+    
     // Month (preceded by a hyphen)
     Z((i.y + 1)) // Is it a bug in shadertoy that we have to add one?
     H(1)
-
+    
   // Year
     Z(i.x % 100)
     Z(i.x / 100)
