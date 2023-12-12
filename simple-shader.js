@@ -86,7 +86,6 @@ export class SimpleShader {
     const ext = path.substring(path.lastIndexOf(".") + 1);
     if (!supported[ext]) {
       const image = new Image();
-      image.src = path;
       return image;
     }
     const video = document.createElement("video");
@@ -246,7 +245,7 @@ export class SimpleShader {
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
               });
             };
             if (!image.src) {
@@ -355,7 +354,6 @@ export class SimpleShader {
             0,
             0
           );
-          const userUnis = this.uniforms;
           const date = new Date();
           Object.entries(data).forEach((uniformType) => {
             const key = uniformType[0];
@@ -370,15 +368,15 @@ export class SimpleShader {
               Object.entries(uniformType[1]).forEach((uniform) => {
                 const image = unis[uniform[0]].image;
                 if (!image.src) image.src = uniform[1];
-                //image.src = userUnis[uniform[0]] || image.src;
                 image.width = res[0];
                 image.height = res[1];
                 const texLoc = gl.getUniformLocation(prog, uniform[0]);
                 const idx = unis[uniform[0]].textureIndex;
                 gl.activeTexture(gl.TEXTURE0 + idx);
                 gl.bindTexture(gl.TEXTURE_2D, unis[uniform[0]].texture);
-                if (image.copyReady)
+                if (image.copyReady) {
                   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                }
                 gl.uniform1i(texLoc, idx);
               });
             };
