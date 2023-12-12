@@ -10,11 +10,11 @@ out vec4 fragColor;
 
 // Computes a smooth-edged diamond pixel value (Manhattan distance)
 #define P(i, j, b) \
-	vec2(.1, b).xyxy * smoothstep(0., 9. / R.y, .1 - abs(i) - abs(j))
+  vec2(.1, b).xyxy * smoothstep(0., 9. / R.y, .1 - abs(i) - abs(j))
 
 // Computes a segment value (length = 0.5)
 #define S(i, j, b) \
-	P(i - clamp(i, 0., .5), j, b & 1)
+  P(i - clamp(i, 0., .5), j, b & 1)
 
 // Colon render
 #define C \
@@ -22,13 +22,13 @@ out vec4 fragColor;
 
 // Hyphen render
 #define H(b) \
-	++x; fragColor += S(x, y, b)
+  ++x; fragColor += S(x, y, b)
 
 // Computes the horizontal and vertical segments based on a denary digit
 #define X(i, j, b) \
-	S(x - i, y - j, b)
+  S(x - i, y - j, b)
 #define Y(i, j, b) \
-	S(y - j, x - i, b)
+  S(y - j, x - i, b)
 #define D(n) \
     H(892>>n) \
     + X(0., .7, 1005>>n) \
@@ -43,7 +43,7 @@ out vec4 fragColor;
 
 void main()
 {
-	vec2 U = gl_FragCoord.xy;
+  vec2 U = gl_FragCoord.xy;
     vec2 R = resolution.xy;
     U += U - R;
     U /= R.y / 3.; // Global scaling with aspect ratio correction
@@ -86,7 +86,7 @@ void main()
     Z((i.y + 1)) // Is it a bug in shadertoy that we have to add one?
     H(1)
 
-	// Year
+  // Year
     Z(i.x % 100)
     Z(i.x / 100)
 }
