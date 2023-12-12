@@ -51,7 +51,7 @@
           const frags = ["glitchboi", "linedither", "scatter", "image-glitcher", "zx-spectrum", "fake-pixelsort"];
           const random = Math.floor(Math.random()*frags.length);
           const def = new Shader("simple-shader", {
-            frag: `./examples/${frags[5]}.frag`,
+            frag: `./examples/${frags[random]}.frag`,
             muted: false,
             loop: true,
             sampler2D: {
