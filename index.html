@@ -34,6 +34,15 @@
       import { SimpleShader as Shader } from "./simple-shader.js";
       const canvas = document.getElementById("simple-shader");
       const prompt = document.getElementById("click-prompt");
+      const def = new Shader("simple-shader", {
+        frag: "./examples/glitchboi.frag",
+        muted: false,
+        loop: true,
+        sampler2D: {
+          sampler0: "./examples/gamer-sudo.mp4"
+        }
+      });
+      def.play();
       let width = window.innerWidth;
       let height = window.innerHeight;
       function changeCanvasSize() {
