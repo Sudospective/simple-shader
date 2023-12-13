@@ -1,5 +1,5 @@
 /*
-  simple-shader.js v0.3.2
+  simple-shader.js v0.3.4
   written by Sudospective
   special thanks to Spax for debugging and feature requests
   
@@ -159,10 +159,8 @@ export class SimpleShader {
       //console.log(text);
       return text;
     }
-    //const vertProm = (data.vert.substring(0,1)==="#") ? data.vert : fetchVert(data.vert);
-    //const fragProm = (data.frag.substring(0,1)==="#") ? data.frag : fetchFrag(data.frag);
-    const vertProm = fetchVert(data.vert);
-    const fragProm = fetchFrag(data.frag);
+    const vertProm = /\n/.test(data.vert) ? data.vert : fetchVert(data.vert);
+    const fragProm = /\n/.test(data.frag) ? data.frag : fetchFrag(data.frag);
     let vertSrc = "";
     let fragSrc = "";
     Promise.all([vertProm, fragProm])
