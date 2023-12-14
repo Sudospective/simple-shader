@@ -52,8 +52,6 @@
           const random = Math.floor(Math.random()*frags.length);
           const def = new Shader("simple-shader", {
             frag: `./examples/${frags[random]}.frag`,
-            muted: false,
-            loop: true,
             sampler2D: {
               sampler0: "./examples/gamer-sudo.mp4"
             }
