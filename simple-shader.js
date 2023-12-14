@@ -80,13 +80,8 @@ export class SimpleShader {
     }
     const ext = path.substring(path.lastIndexOf(".") + 1);
     if (!supported[ext]) {
-      if (!document.getElementById(path)) {
-        const image = new Image();
-        return image;
-      }
-      else {
-        return document.getElementById(path);
-      }
+      const image = new Image();
+      return image;
     }
     const video = document.createElement("video");
     video.copyReady = false;
@@ -120,9 +115,9 @@ export class SimpleShader {
     data = data || {};
     const unis = {}; // internal
     if (data && data.uniforms) {
-      Object.entries(data.uniforms).forEach(entry => {
+      Object.entries(data.uniforms).forEach((entry) => {
         const type = entry[0];
-        Object.entries(entry[1]).forEach(uniform => {
+        Object.entries(entry[1]).forEach((uniform) => {
           this.uniforms[type] = uniform[1];
         });
       });
@@ -164,19 +159,11 @@ export class SimpleShader {
       //console.log(text);
       return text;
     }
-    const shaderProms = [];
     const vertProm = /\n/.test(data.vert) ? data.vert : fetchVert(data.vert);
     const fragProm = /\n/.test(data.frag) ? data.frag : fetchFrag(data.frag);
-    shaderProms.push(vertProm);
-    shaderProms.push(fragProm);
-    data.buffers.forEach(buffer => {
-      const prom = /\n/.test(buffer) ? buffer : fetchFrag(buffer);
-      shaderProms.push(prom);
-    });
     let vertSrc = "";
     let fragSrc = "";
-    const bufferProgs = [];
-    Promise.all(shaderProms)
+    Promise.all([vertProm, fragProm])
       .then((res) => {
         vertSrc = res[0];
         fragSrc = res[1];
@@ -211,38 +198,6 @@ export class SimpleShader {
           console.log(gl.getProgramInfoLog(program));
           return null;
         };
-        for (let i = 2; i < res.length; i++) {
-          const v = gl.createShader(gl.VERTEX_SHADER);
-          gl.shaderSource(v, vertSrc);
-          gl.compileShader(v);
-          if (!gl.getShaderParameter(v, gl.COMPILE_STATUS)) {
-            console.log(gl.getShaderInfoLog(v));
-            gl.deleteShader(v);
-            return null;
-          }
-          const shader = gl.createShader(gl.FRAGMENT_SHADER);
-          gl.shaderSource(shader, res[i]);
-          gl.compileShader(shader);
-          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            console.log(gl.getShaderInfoLog(shader));
-            gl.deleteShader(shader);
-            return null;
-          }
-          const prog = gl.createProgram();
-          gl.attachShader(prog, v);
-          gl.attachShader(prog, shader);
-          gl.linkProgram(prog);
-          if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-            console.log(gl.getProgramInfoLog(prog));
-            return null;
-          };
-          gl.validateProgram(prog);
-          if (!gl.getProgramParameter(prog, gl.VALIDATE_STATUS)) {
-            console.log(gl.getProgramInfoLog(prog));
-            return null;
-          };
-          bufferProgs.push(prog);
-        }
         this.program = program;
         const posLoc = gl.getAttribLocation(this.program, "position");
         const texLoc = gl.getAttribLocation(this.program, "texCoord");
@@ -268,12 +223,7 @@ export class SimpleShader {
         ]), gl.STATIC_DRAW);
         if (data.sampler2D) {
           var texId = 0;
-          ["sampler0", "sampler1", "sampler2", "sampler3"].forEach(sampler => {
-            if (!data.sampler2D[sampler]) {
-              data.sampler2D[sampler] = "simple-shader";
-            }
-          });
-          Object.entries(data.sampler2D).forEach(sampler => {
+          Object.entries(data.sampler2D).forEach((sampler) => {
             unis[sampler[0]] = { textureIndex: texId++ };
             const image = SimpleShader.setupTexture(sampler[1]);
             const assignTexture = function(obj) {
@@ -396,7 +346,7 @@ export class SimpleShader {
             0
           );
           const date = new Date();
-          Object.entries(data).forEach(uniformType => {
+          Object.entries(data).forEach((uniformType) => {
             const key = uniformType[0];
             if (uniformFunc[key]) {
               Object.entries(uniformType[1]).forEach((uniform) => {
@@ -406,7 +356,7 @@ export class SimpleShader {
               });
             }
             else if (key === "sampler2D") {
-              Object.entries(uniformType[1]).forEach(uniform => {
+              Object.entries(uniformType[1]).forEach((uniform) => {
                 const image = unis[uniform[0]].image;
                 if (!image.src) image.src = uniform[1];
                 image.width = res[0];
@@ -424,7 +374,6 @@ export class SimpleShader {
           });
           gl.uniform2fv(gl.getUniformLocation(prog, "resolution"), res);
           gl.uniform1f(gl.getUniformLocation(prog, "time"), this.time * 0.001);
-          gl.uniform1i(gl.getUniformLocation(prog, "frame"), this.frame);
           gl.uniform4fv(gl.getUniformLocation(prog, "date"), [
             date.getFullYear(),
             date.getMonth(),
@@ -433,77 +382,6 @@ export class SimpleShader {
           ]);
           gl.uniform4fv(gl.getUniformLocation(prog, "mouse"), mouse);
           gl.drawArrays(gl.TRIANGLES, 0, 6);
-          bufferProgs.forEach(program => {
-            const pos = gl.getAttribLocation(program, "position");
-            const tex = gl.getAttribLocation(program, "texCoord");
-            gl.useProgram(program);
-            gl.enableVertexAttribArray(pos);
-            gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-              0.0, 0.0,
-              res[0], 0.0,
-              0.0, res[1],
-              0.0, res[1],
-              res[0], 0.0,
-              res[0], res[1],
-            ]), gl.DYNAMIC_DRAW);
-            gl.vertexAttribPointer(
-              pos,
-              2,
-              gl.FLOAT,
-              false,
-              0,
-              0
-            );
-            gl.enableVertexAttribArray(tex);
-            gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
-            gl.vertexAttribPointer(
-              tex,
-              2,
-              gl.FLOAT,
-              false,
-              0,
-              0
-            );
-            Object.entries(data).forEach(uniformType => {
-              const key = uniformType[0];
-              if (uniformFunc[key]) {
-                Object.entries(uniformType[1]).forEach((uniform) => {
-                  unis[uniform[0]] = uniform[1];
-                  const uniformLoc = gl.getUniformLocation(program, uniform[0]);
-                  gl[uniformFunc[key]](uniformLoc, uniform[1]);
-                });
-              }
-              else if (key === "sampler2D") {
-                Object.entries(uniformType[1]).forEach(uniform => {
-                  const image = unis[uniform[0]].image;
-                  if (!image.src) image.src = uniform[1];
-                  image.width = res[0];
-                  image.height = res[1];
-                  const texLoc = gl.getUniformLocation(program, uniform[0]);
-                  const idx = unis[uniform[0]].textureIndex;
-                  gl.activeTexture(gl.TEXTURE0 + idx);
-                  gl.bindTexture(gl.TEXTURE_2D, unis[uniform[0]].texture);
-                  if (image.copyReady) {
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-                  }
-                  gl.uniform1i(texLoc, idx);
-                });
-              };
-            });
-            gl.uniform2fv(gl.getUniformLocation(program, "resolution"), res);
-            gl.uniform1f(gl.getUniformLocation(program, "time"), this.time * 0.001);
-            gl.uniform1i(gl.getUniformLocation(program, "frame"), this.frame);
-            gl.uniform4fv(gl.getUniformLocation(program, "date"), [
-              date.getFullYear(),
-              date.getMonth(),
-              date.getDate(),
-              date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds() + date.getMilliseconds() * 0.001
-            ]);
-            gl.uniform4fv(gl.getUniformLocation(program, "mouse"), mouse);
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
-          });
-          ++this.frame;
           if (this.ready)
             window.requestAnimationFrame(this.render);
           else
@@ -511,7 +389,6 @@ export class SimpleShader {
         };
         this.render = render.bind(this);
         this.time = 0.0;
-        this.frame = 0;
         this.startTime = Date.now();
         this.render();
       });
@@ -519,19 +396,13 @@ export class SimpleShader {
   play(startTime) {
     this.ready = true;
     this.startTime = startTime || Date.now();
-    if (!startTime)
-      this.frame = 0;
     if (this.render) this.render();
   }
   stop() {
     this.ready = false;
     this.time = 0.0;
-    this.frame = 0;
     this.startTime = Date.now();
     this.render();
-  }
-  isPlaying() {
-    return this.ready;
   }
   set(uniform, value) {
     this.uniforms[uniform] = value;
