@@ -34,6 +34,17 @@
       import { SimpleShader as Shader } from "./simple-shader.js";
       const canvas = document.getElementById("simple-shader");
       const prompt = document.getElementById("click-prompt");
+      const frags = ["glitchboi", "linedither", "scatter", "image-glitcher", "zx-spectrum", "fake-pixelsort"];
+      const random = Math.floor(Math.random()*frags.length);
+      const s = new Shader("simple-shader", {
+        frag: `./examples/debug.frag`,
+        buffers: [
+          `./examples/trail-buffer.frag`
+        ],
+        sampler2D: {
+          sampler0: "./examples/gamer-sudo.mp4",
+        }
+      });
       let width = window.innerWidth;
       let height = window.innerHeight;
       function changeCanvasSize() {
@@ -42,23 +53,13 @@
         canvas.width = width;
         canvas.height = height;
       }
-      canvas.onload = changeCanvasSize();
+      changeCanvasSize();
       window.onresize = changeCanvasSize;
       let clicked = false;
       document.onclick = function() {
         if (!clicked) {
           clicked = true;
-          const frags = ["glitchboi", "linedither", "scatter", "image-glitcher", "zx-spectrum", "fake-pixelsort"];
-          const random = Math.floor(Math.random()*frags.length);
-          const def = new Shader("simple-shader", {
-            frag: `./examples/${frags[random]}.frag`,
-            muted: false,
-            loop: true,
-            sampler2D: {
-              sampler0: "./examples/gamer-sudo.mp4"
-            }
-          });
-          def.play();
+          s.play();
           prompt.style.display = "none";
         }
       }
