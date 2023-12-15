@@ -1,5 +1,5 @@
 /*
-  simple-shader.js v0.3.4
+  simple-shader.js v0.3.5
   written by Sudospective
   special thanks to Spax for debugging and feature requests
   
@@ -11,69 +11,70 @@
   https://git.sudospective.net/simple-shader
   https://github.com/Sudospective/simple-shader
 */
-const src = {
-vert1: `precision lowp float;
-  attribute vec2 position;
-  attribute vec2 texCoord;
-  uniform vec2 resolution;
-  varying vec2 imageCoord;
-  void main() {
-    vec2 zeroToOne = position / resolution;
-    vec2 zeroToTwo = zeroToOne * 2.0;
-    vec2 clipSpace = zeroToTwo - 1.0;
-    gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
-    imageCoord = texCoord;
-  }
-`,
-vert2: `#version 300 es
-  precision lowp float;
-  in vec2 position;
-  in vec2 texCoord;
-  uniform vec2 resolution;
-  out vec2 imageCoord;
-  void main() {
-    vec2 zeroToOne = position / resolution;
-    vec2 zeroToTwo = zeroToOne * 2.0;
-    vec2 clipSpace = zeroToTwo - 1.0;
-    gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
-    imageCoord = texCoord;
-  }
-`,
-frag1: `precision lowp float;
-  #define PI 3.1415827
-  uniform vec2 resolution;
-  uniform float time;
-  uniform sampler2D sampler0;
-  varying vec2 imageCoord;
-  void main() {
-    vec2 uv = gl_FragCoord.xy / resolution;
-    vec4 color = vec4(uv, (0.5 + sin(time - (PI * 0.5)) * 0.5), 1.0);
-    gl_FragColor = color;
-  }
-`,
-frag2: `#version 300 es
-  precision lowp float;
-  #define PI 3.1415827
-  uniform vec2 resolution;
-  uniform float time;
-  uniform sampler2D sampler0;
-  in vec2 imageCoord;
-  out vec4 fragColor;
-  void main() {
-    vec2 uv = gl_FragCoord.xy / resolution;
-    vec4 color = vec4(uv, (0.5 + sin(time - (PI * 0.5)) * 0.5), 1.0);
-    fragColor = color;
-  }
-`
-};
+
 export class SimpleShader {
-  static defaultVertex(ver) {
-    return src["vert" + ver];
+  static defaultVertex(ver, precision) {
+    precision = precision || "low";
+    if (ver === 1) {
+      return `precision ${precision}p float;
+        attribute vec2 position;
+        attribute vec2 texCoord;
+        uniform vec2 resolution;
+        varying vec2 imageCoord;
+        void main() {
+          vec2 zeroToOne = position / resolution;
+          vec2 zeroToTwo = zeroToOne * 2.0;
+          vec2 clipSpace = zeroToTwo - 1.0;
+          gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
+          imageCoord = texCoord;
+        }`
+    } else if (ver === 2) {
+      return `#version 300 es
+        precision ${precision}p float;
+        in vec2 position;
+        in vec2 texCoord;
+        uniform vec2 resolution;
+        out vec2 imageCoord;
+        void main() {
+          vec2 zeroToOne = position / resolution;
+          vec2 zeroToTwo = zeroToOne * 2.0;
+          vec2 clipSpace = zeroToTwo - 1.0;
+          gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
+          imageCoord = texCoord;
+        }`
+    } else return null;
   };
-  static defaultFragment(ver) {
-    return src["frag" + ver];
+  static defaultFragment(ver, precision) {
+    precision = precision || "low";
+    if (ver === 1) {
+      return `precision ${precision}p float;
+        #define PI 3.1415927
+        uniform vec2 resolution;
+        uniform float time;
+        uniform sampler2D sampler0;
+        varying vec2 imageCoord;
+        void main() {
+          vec2 uv = gl_FragCoord.xy / resolution;
+          vec4 color = vec4(uv, (0.5 + sin(time - (PI * 0.5)) * 0.5), 1.0);
+          gl_FragColor = color;
+        }`
+    } else if (ver === 2) {
+      return `#version 300 es
+        precision ${precision}p float;
+        #define PI 3.1415927
+        uniform vec2 resolution;
+        uniform float time;
+        uniform sampler2D sampler0;
+        in vec2 imageCoord;
+        out vec4 fragColor;
+        void main() {
+          vec2 uv = gl_FragCoord.xy / resolution;
+          vec4 color = vec4(uv, (0.5 + sin(time - (PI * 0.5)) * 0.5), 1.0);
+          fragColor = color;
+        }`
+    } else return null;
   };
-  static setupTexture(path) {
+  static setupTexture(path, data) {
     // TODO: Fill with more supported video extensions
     const supported = {
       mp4: true
@@ -92,9 +93,9 @@ export class SimpleShader {
         video.copyReady = true; // haha weeeeeee
       }
     }
-    video.playsInline = true;
-    video.muted = true;
-    video.loop = true;
+    video.playsInline = (data.playsInline !== null) ? data.playsInline : true;
+    video.muted = (data.muted !== null) ? data.muted : true;
+    video.loop = (data.loop !== null) ? data.loop : true;
     video.addEventListener("playing", () => {
       playing = true;
       checkReady();
@@ -104,9 +105,9 @@ export class SimpleShader {
       checkReady();
     }, true);
     video.src = path;
-    video.play();
     return video;
   };
+  canvas = null;
   ready = false;
   initTime = Date.now();
   time = 0.0;
@@ -114,6 +115,7 @@ export class SimpleShader {
   constructor(canvasId, data) {
     data = data || {};
     const unis = {}; // internal
+    this.canvas = document.getElementById(canvasId);
     if (data && data.uniforms) {
       Object.entries(data.uniforms).forEach((entry) => {
         const type = entry[0];
@@ -127,6 +129,7 @@ export class SimpleShader {
       console.log("Unable to get canvas with ID", canvasId);
       return null;
     };
+    this.precision = data.precision;
     this.context = this.canvas.getContext("webgl2");
     this.version = 2;
     if (!this.context) {
@@ -146,14 +149,14 @@ export class SimpleShader {
     };
     const ver = this.version;
     async function fetchVert(path) {
-      if (!path) return SimpleShader.defaultVertex(ver);
+      if (!path) return SimpleShader.defaultVertex(ver, data.precision);
       const text = await fetch(path)
         .then(res => res.text()).catch((e) => console.error(e));
       //console.log(text);
       return text;
     }
     async function fetchFrag(path) {
-      if (!path) return SimpleShader.defaultFragment(ver);
+      if (!path) return SimpleShader.defaultFragment(ver, data.precision);
       const text = await fetch(path)
         .then(res => res.text()).catch((e) => console.error(e));
       //console.log(text);
@@ -222,10 +225,13 @@ export class SimpleShader {
           1.0, 1.0,
         ]), gl.STATIC_DRAW);
         if (data.sampler2D) {
-          var texId = 0;
+          let texId = 0;
           Object.entries(data.sampler2D).forEach((sampler) => {
             unis[sampler[0]] = { textureIndex: texId++ };
-            const image = SimpleShader.setupTexture(sampler[1]);
+            const image = SimpleShader.setupTexture(sampler[1], data);
+            if (image.nodeName.toLowerCase() === "video") {
+              this.video = image;
+            }
             const assignTexture = function(obj) {
               const tex = gl.createTexture();
               obj.texture = tex;
@@ -271,7 +277,7 @@ export class SimpleShader {
         };
         const getCanvasMouseData = function(event, target) {
           target = target || event.target;
-          var pos = getRelMouseData(event, target);
+          const pos = getRelMouseData(event, target);
           pos.x *= target.width / target.clientWidth;
           pos.y *= target.height / target.clientHeight;
           return pos;
@@ -354,8 +360,7 @@ export class SimpleShader {
                 const uniformLoc = gl.getUniformLocation(prog, uniform[0]);
                 gl[uniformFunc[key]](uniformLoc, uniform[1]);
               });
-            }
-            else if (key === "sampler2D") {
+            } else if (key === "sampler2D") {
               Object.entries(uniformType[1]).forEach((uniform) => {
                 const image = unis[uniform[0]].image;
                 if (!image.src) image.src = uniform[1];
@@ -396,12 +401,16 @@ export class SimpleShader {
   play(startTime) {
     this.ready = true;
     this.startTime = startTime || Date.now();
-    if (this.render) this.render();
+    if (this.render) {
+      if (this.video) this.video.play();
+      this.render();
+    }
   }
   stop() {
     this.ready = false;
     this.time = 0.0;
     this.startTime = Date.now();
+    if (this.video) this.video.pause();
     this.render();
   }
   set(uniform, value) {

@@ -1,13 +1,17 @@
 #version 300 es
-precision lowp float;
+
+precision highp float;
 
 uniform vec2 resolution;
 uniform float time;
 uniform sampler2D sampler0;
-
-out vec4 fragColor;
+//uniform float samplertime0;
 
 //originally written by Spax
+//https://www.shadertoy.com/view/dtVcRK
+//https://youtu.be/GkR-Sb0MbdM
+
+out vec4 fragColor;
 
 //rgb2hsv and hsv2rgb written by XeroOl
 //All components are in the range [0...1], including hue.
@@ -39,14 +43,18 @@ float random1d(float seed) {
 }
 
 void main() {
-  float speed = 1.;
-  float offset = -3.65;
-  float seed = max(0.0, floor(time*speed+offset));
+  float speed = 1.0; //basically how many times the seed gets regenerated per second. used to be 46./60.
+  float offset = 0.0; //used to be -3.65
+  //float seed = max(0.0, floor(min(213.0, (samplertime0 > 0. ? samplertime0 : time))*speed+offset));
+  //float seed = max(0.0, floor(min(213.0, time)*speed+offset));
+  float seed = floor(time*speed+offset);
   vec2 uv = gl_FragCoord.xy/resolution.xy;
+  float res = 16.; //0-255
+  float intensity = 0.9; //0-1
   
   vec4 image = texture(sampler0, uv);
-  vec3 colorrgb = image.xyz;
-  vec3 colorhsv = rgb2hsv(image.xyz);
+  vec3 colorrgb = round(image.xyz*res)/res;
+  //vec3 colorhsv = rgb2hsv(image.xyz);
   
   /*vec3 randColor = vec3(
     colorhsv.x*((random3d(colorhsv+seed)*0.75)+0.5),
@@ -59,9 +67,9 @@ void main() {
     abs(random2d(fract(time*st)) + colorhsv.z)
   );*/
   vec3 randColor = vec3(
-    random3d((seed + 0.01) * (colorrgb+0.5)), //colorrgb.x,
-    random3d((seed + 0.33) * (colorrgb+0.5)), //colorrgb.y,
-    random3d((seed + 0.67) * (colorrgb+0.5))  //colorrgb.z
+    colorrgb.r*(1.0-intensity)+(intensity)*random3d((seed + 0.01) * (colorrgb+0.5)), //colorrgb.x,
+    colorrgb.g*(1.0-intensity)+(intensity)*random3d((seed + 0.33) * (colorrgb+0.5)), //colorrgb.y,
+    colorrgb.b*(1.0-intensity)+(intensity)*random3d((seed + 0.67) * (colorrgb+0.5))  //colorrgb.z
   );
   
   //fragColor = vec4(image.xyz,1.0);

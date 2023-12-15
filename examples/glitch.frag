@@ -4,7 +4,7 @@
 // Title: Day 490
 // https://www.shadertoy.com/view/NdlXzs
 
-precision lowp float;
+precision highp float;
 
 uniform vec2 resolution;
 uniform float time;
