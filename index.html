@@ -15,6 +15,8 @@
       canvas {
         width: 100%;
         height: 100%;
+        image-rendering: pixelated;
+        display: none;
       }
       p {
         color: white;
@@ -44,22 +46,24 @@
       }
       canvas.onload = changeCanvasSize();
       window.onresize = changeCanvasSize;
+      const frags = ["glitchboi", "line-dither", "scatter", "image-glitcher", "zx-spectrum", "fake-pixelsort"];
+      const random = Math.floor(Math.random()*frags.length);
+      const def = new Shader("simple-shader", {
+        frag: `./examples/${frags[random]}.frag`,
+        precision: "high",
+        muted: false,
+        loop: true,
+        sampler2D: {
+          sampler0: "./examples/gamer-sudo.mp4"
+        }
+      });
       let clicked = false;
       document.onclick = function() {
         if (!clicked) {
           clicked = true;
-          const frags = ["glitchboi", "linedither", "scatter", "image-glitcher", "zx-spectrum", "fake-pixelsort"];
-          const random = Math.floor(Math.random()*frags.length);
-          const def = new Shader("simple-shader", {
-            frag: `./examples/${frags[random]}.frag`,
-            muted: false,
-            loop: true,
-            sampler2D: {
-              sampler0: "./examples/gamer-sudo.mp4"
-            }
-          });
-          def.play();
           prompt.style.display = "none";
+          canvas.style.display = "inherit";
+          def.play();
         }
       }
       /*TODO: add a working toggle
