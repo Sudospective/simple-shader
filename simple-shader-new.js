@@ -48,6 +48,7 @@ class RenderTarget {
     this.buffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.buffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 }
 
@@ -106,7 +107,7 @@ async function init(ss) {
   ss.programs.push(initProgram(gl, defVert, defFrag));
   ss.targets.push(new RenderTarget(gl, ss.canvas.width, ss.canvas.height));
   if (opts.frags) {
-    for (let i = 0; i < opts.frags.length; i++) {
+    for (let i = 1; i < opts.frags.length; i++) {
      const fragSrc = await fetchFrag(opts.frags[i]);
      const program = initProgram(gl, defVert, fragSrc);
      const target = new RenderTarget(gl, ss.canvas.width, ss.canvas.height);
@@ -119,46 +120,12 @@ async function init(ss) {
     const quadPos = gl.getAttribLocation(program, "position");
     const quad = initQuad(gl);
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
-    gl.vertexAttribPointer(quadPos, 2, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(quadPos, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(quadPos);
     gl.viewport(0, 0, ss.canvas.width, ss.canvas.height);
     const resolutionLoc = gl.getUniformLocation(program, "resolution");
-    const samplerResLoc = gl.getUniformLocation(program, "samplerRes");
-    const resos = [ss.canvas.width, ss.canvas.height, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
     gl.uniform2f(resolutionLoc, ss.canvas.width, ss.canvas.height);
-    gl.uniform3fv(samplerResLoc, new Float32Array(resos));
   });
-  let frame = 0;
-  let time = 0.0;
-  let lastTime = 0.0;
-  const render = () => {
-    time = performance.now() * 0.001;
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    for (let i = 0; i < ss.programs.length; i++) {
-      const program = ss.programs[i];
-      const target = ss.targets[i];
-      const timeLoc = gl.getUniformLocation(program, "time");
-      const deltaLoc = gl.getUniformLocation(program, "delta");
-      const frameLoc = gl.getUniformLocation(program, "frame");
-      const resolutionLoc = gl.getUniformLocation(program, "resolution");
-      const samplerResLoc = gl.getUniformLocation(program, "samplerRes");
-      const resos = [ss.canvas.width, ss.canvas.height, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-      gl.useProgram(program);
-      gl.uniform1f(timeLoc, time);
-      gl.uniform1i(frameLoc, frame++);
-      gl.uniform1f(deltaLoc, time - lastTime);
-      gl.uniform2f(resolutionLoc, ss.canvas.width, ss.canvas.height);
-      gl.uniform3fv(samplerResLoc, new Float32Array(resos));
-      gl.bindFramebuffer(gl.FRAMEBUFFER, target.buffer);
-      gl.bindTexture(gl.TEXTURE_2D, target.texture);
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    }
-    lastTime = time;
-    requestAnimationFrame(render);
-  }
-  lastTime = performance.now() * 0.001;
-  render();
 }
 
 export class SimpleShader {
@@ -177,5 +144,46 @@ export class SimpleShader {
       return null;
     }
     init(this);
+    let frame = 0;
+    let time = 0.0;
+    let lastTime = 0.0;
+    const gl = this.context;
+    const render = () => {
+      time = performance.now() * 0.001;
+      for (let i = 0; i < this.programs.length; i++) {
+        const program = this.programs[i];
+        const target = this.targets[i];
+        const lastTarget = this.targets[i - 1];
+        const timeLoc = gl.getUniformLocation(program, "time");
+        const deltaLoc = gl.getUniformLocation(program, "delta");
+        const frameLoc = gl.getUniformLocation(program, "frame");
+        const resolutionLoc = gl.getUniformLocation(program, "resolution");
+        gl.useProgram(program);
+        gl.uniform1f(timeLoc, time);
+        gl.uniform1i(frameLoc, frame++);
+        gl.uniform1f(deltaLoc, time - lastTime);
+        gl.uniform2f(resolutionLoc, this.canvas.width, this.canvas.height);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        if (lastTarget)
+          gl.bindFramebuffer(gl.READ_FRAMEBUFFER, lastTarget.buffer);
+        else
+          gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, target.buffer);
+        gl.viewport(0.0, 0.0, this.canvas.width, this.canvas.height);
+        gl.bindTexture(gl.TEXTURE_2D, target.texture);
+        gl.blitFramebuffer(
+          0.0, 0.0, this.canvas.width, this.canvas.height,
+          0.0, 0.0, this.canvas.width, this.canvas.height,
+          gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT,
+          gl.NEAREST
+        );
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+      lastTime = time;
+      requestAnimationFrame(render);
+    }
+    lastTime = performance.now() * 0.001;
+    render();
   }
 }
