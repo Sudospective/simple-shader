@@ -30,6 +30,17 @@ void main() {
 `
 };
 
+const uniFuncs = {
+  int: "uniform1i",
+  ivec2: "uniform2iv",
+  ivec3: "uniform3iv",
+  ivec4: "uniform4iv",
+  float: "uniform1f",
+  vec2: "uniform2fv",
+  vec3: "uniform3fv",
+  vec4: "uniform4fv",
+}
+
 let texCount = 0;
 class RenderTarget {
   constructor(gl, width, height) {
@@ -51,6 +62,32 @@ class RenderTarget {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.buffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+  }
+}
+class Sampler {
+  constructor(gl, src) {
+    this.data = setupSampler(src);
+    this.Id = texCount++;
+    const assignTexture = function(obj) {
+      const tex = gl.createTexture();
+      obj.texture = tex;
+      return (function() {
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
+      });
+    };
+    if (!this.data.src) {
+      this.data.src = src;
+      this.data.copyReady = true;
+      this.data.onload = assignTexture(this);
+    }
+    else
+      this.data.onloadstart = assignTexture(this);
   }
 }
 
@@ -108,6 +145,45 @@ function initBuffers(gl) {
   gl.bufferData(gl.ARRAY_BUFFER, tex, gl.DYNAMIC_DRAW);
   return { posBuf, texBuf };
 }
+function setupSampler(src) {
+  const video = {
+    mp4: true
+  };
+  const ext = src.substring(src.lastIndexOf(".") + 1);
+  if (!video[ext]) {
+    if (document.getElementById(src)) {
+      const sampler = document.getElementById(src);
+      sampler.copyReady = true;
+      return sampler;
+    }
+    const sampler = new Image();
+    sampler.copyReady = true;
+    return sampler;
+  }
+  const sampler = document.createElement("video");
+  sampler.copyReady = false;
+  let playing = false;
+  let timeUpdate = false;
+  function checkReady() {
+    if (playing && timeUpdate) {
+      sampler.copyReady = true;
+    }
+  }
+  sampler.playsInline = true;
+  sampler.muted = true;
+  sampler.loop = true;
+  sampler.addEventListener("playing", () => {
+    playing = true;
+    checkReady();
+  }, true);
+  sampler.addEventListener("timeupdate", () => {
+    timeUpdate = true;
+    checkReady();
+  }, true);
+  sampler.src = src;
+  sampler.play();
+  return sampler;
+}
 async function fetchFrag(path) {
   const text = await fetch(path)
     .then(res => res.text()).catch((e) => console.error(e));
@@ -117,6 +193,7 @@ async function fetchFrag(path) {
 async function init(ss) {
   const gl = ss.context;
   const opts = ss.options;
+  opts.uniforms = opts.uniforms || [];
   const defVert = defSrc.vert;
   const defFrag = defSrc.frag;
   ss.buffers = initBuffers(gl);
@@ -139,11 +216,50 @@ async function init(ss) {
     const resolutionLoc = gl.getUniformLocation(program, "resolution");
     gl.uniform2f(resolutionLoc, ss.canvas.width, ss.canvas.height);
   });
+  for (let i = 0; i < opts.frags.length; i++) {
+    opts.uniforms[i] = opts.uniforms[i] || {};
+    ss.samplers[i] = ss.samplers[i] || {};
+    const unis = opts.uniforms[i] || {};
+    if (unis.sampler2D) {
+      Object.entries(unis.sampler2D).forEach(uniform => {
+        ss.samplers[i][uniform[0]] = new Sampler(gl, uniform[1]);
+      });
+    }
+  }
+}
+function applyUniforms(gl, program, uniforms, samplers) {
+  gl.useProgram(program);
+  Object.entries(uniforms).forEach(uniformType => {
+    if (uniFuncs[uniformType[0]]) {
+      Object.entries(uniformType[1]).forEach(uniform => {
+        const uniformLoc = gl.getUniformLocation(program, uniform[0]);
+        gl[uniFuncs[uniformType[0]]](uniformLoc, uniform[1]);
+      });
+    }
+    else if (uniformType[0] === "sampler2D") {
+      Object.entries(uniformType[1]).forEach((uniform) => {
+        const sampler = samplers[uniform[0]];
+        const image = sampler.data;
+        if (!image.src) image.src = uniform[1];
+        image.width = gl.canvas.width;
+        image.height = gl.canvas.height;
+        const texLoc = gl.getUniformLocation(program, uniform[0]);
+        const idx = sampler.Id;
+        gl.activeTexture(gl.TEXTURE0 + sampler.Id);
+        gl.bindTexture(gl.TEXTURE_2D, sampler.texture);
+        if (image.copyReady) {
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        }
+        gl.uniform1i(texLoc, idx);
+      });
+    }
+  });
 }
 
 export class SimpleShader {
   programs = [];
   targets = [];
+  samplers = [];
   constructor(canvasId, options) {
     this.options = options || {};
     this.canvas = document.getElementById(canvasId);
@@ -177,48 +293,69 @@ export class SimpleShader {
       1.0, 0.0,
       1.0, 1.0,
     ]);
+    const date = new Date();
     const render = () => {
       time = performance.now() * 0.001;
       for (let i = 0; i < this.programs.length; i++) {
+        const canvas = this.canvas;
+        const buffers = this.buffers;
         const program = this.programs[i];
         const target = this.targets[i];
         const lastTarget = this.targets[i - 1];
+        const uniforms = this.options.uniforms[i] || {};
         const posLoc = gl.getAttribLocation(program, "position");
         const texLoc = gl.getAttribLocation(program, "texCoord");
+        const resolutionLoc = gl.getUniformLocation(program, "resolution");
         const timeLoc = gl.getUniformLocation(program, "time");
+        const dateLoc = gl.getUniformLocation(program, "date");
         const deltaLoc = gl.getUniformLocation(program, "delta");
         const frameLoc = gl.getUniformLocation(program, "frame");
-        const resolutionLoc = gl.getUniformLocation(program, "resolution");
         const framebufferLoc = gl.getUniformLocation(program, "framebuffer");
         gl.useProgram(program);
+        applyUniforms(gl, program, uniforms, this.samplers[i]);
+        gl.uniform2f(resolutionLoc, canvas.width, canvas.height);
         gl.uniform1f(timeLoc, time);
+        gl.uniform4fv(dateLoc, [
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+          date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds() + date.getMilliseconds() * 0.001
+        ]);
         gl.uniform1i(frameLoc, frame++);
         gl.uniform1f(deltaLoc, time - lastTime);
-        gl.uniform2f(resolutionLoc, this.canvas.width, this.canvas.height);
         if (lastTarget)
           gl.uniform1i(framebufferLoc, lastTarget.Id);
         gl.enableVertexAttribArray(posLoc);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.posBuf);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.posBuf);
         gl.bufferData(gl.ARRAY_BUFFER, pos, gl.DYNAMIC_DRAW);
         gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(texLoc);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.texBuf);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texBuf);
         gl.bufferData(gl.ARRAY_BUFFER, tex, gl.DYNAMIC_DRAW);
         gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.viewport(0.0, 0.0, this.canvas.width, this.canvas.height);
+        gl.viewport(0.0, 0.0, canvas.width, canvas.height);
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, target.buffer);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         gl.activeTexture(gl.TEXTURE0 + target.Id);
         gl.bindTexture(gl.TEXTURE_2D, target.texture);
-        gl.texImage2D(gl.TEXTURE_2D, target.level, gl.RGBA, this.canvas.width, this.canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.canvas);
+        gl.texImage2D(gl.TEXTURE_2D, target.level, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, this.canvas);
       }
       lastTime = time;
-      requestAnimationFrame(render);
+      if (this.ready)
+        requestAnimationFrame(render);
+      else
+        cancelAnimationFrame(render);
     }
+    this.render = render.bind(this);
     lastTime = performance.now() * 0.001;
-    render();
+    this.render();
+  }
+  play(startTime) {
+    this.ready = true;
+    this.startTime = startTime || Date.now();
+    this.render();
   }
 }

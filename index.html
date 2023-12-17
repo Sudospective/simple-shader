@@ -38,8 +38,23 @@
         frags: [
           "./examples/dream-buffer.frag",
           "./examples/dream.frag",
+        ],
+        /*
+        uniforms: [
+          {
+            sampler2D: {
+              sampler0: "./examples/gamer-sudo.mp4"
+            }
+          },
+          {
+            float: {
+              amp: 0.0
+            }
+          }
         ]
+        */
       });
+      s.play();
       /*TODO: add a working toggle
       let toggled = true;
       document.body.onkeydown = function(e) {
