@@ -80,6 +80,10 @@ export class SimpleShader {
     }
     const ext = path.substring(path.lastIndexOf(".") + 1);
     if (!supported[ext]) {
+      if (document.getElementById(path)) {
+        const canvas = document.getElementById(path);
+        return canvas;
+      }
       const image = new Image();
       return image;
     }
