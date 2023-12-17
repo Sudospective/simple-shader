@@ -36,23 +36,23 @@
       changeCanvasSize();
       const s = new Shader("simple-shader", {
         frags: [
-          "./examples/dream-buffer.frag",
+          "./examples/image.frag",
           "./examples/dream.frag",
         ],
-        /*
+        //*
         uniforms: [
-          {
+          { // image.frag
             sampler2D: {
               sampler0: "./examples/gamer-sudo.mp4"
             }
           },
-          {
+          { // dream.frag
             float: {
               amp: 0.0
             }
           }
         ]
-        */
+        //*/
       });
       s.play();
       /*TODO: add a working toggle

@@ -238,19 +238,21 @@ function applyUniforms(gl, program, uniforms, samplers) {
     }
     else if (uniformType[0] === "sampler2D") {
       Object.entries(uniformType[1]).forEach((uniform) => {
-        const sampler = samplers[uniform[0]];
-        const image = sampler.data;
-        if (!image.src) image.src = uniform[1];
-        image.width = gl.canvas.width;
-        image.height = gl.canvas.height;
-        const texLoc = gl.getUniformLocation(program, uniform[0]);
-        const idx = sampler.Id;
-        gl.activeTexture(gl.TEXTURE0 + sampler.Id);
-        gl.bindTexture(gl.TEXTURE_2D, sampler.texture);
-        if (image.copyReady) {
-          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        if (samplers) {
+          const sampler = samplers[uniform[0]];
+          const image = sampler.data;
+          if (!image.src) image.src = uniform[1];
+          image.width = gl.canvas.width;
+          image.height = gl.canvas.height;
+          const texLoc = gl.getUniformLocation(program, uniform[0]);
+          const idx = sampler.Id;
+          gl.activeTexture(gl.TEXTURE0 + sampler.Id);
+          gl.bindTexture(gl.TEXTURE_2D, sampler.texture);
+          if (image.copyReady) {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+          }
+          gl.uniform1i(texLoc, idx);
         }
-        gl.uniform1i(texLoc, idx);
       });
     }
   });
