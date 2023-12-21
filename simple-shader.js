@@ -279,27 +279,27 @@ export class SimpleShader {
     let time = 0.0;
     let lastTime = 0.0;
     const gl = this.context;
-    const pos = new Float32Array([
-      0.0, 0.0,
-      gl.canvas.width, 0.0,
-      0.0, gl.canvas.height,
-      0.0, gl.canvas.height,
-      gl.canvas.width, 0.0,
-      gl.canvas.width, gl.canvas.height,
-    ]);
-    const tex = new Float32Array([
-      0.0, 0.0,
-      1.0, 0.0,
-      0.0, 1.0,
-      0.0, 1.0,
-      1.0, 0.0,
-      1.0, 1.0,
-    ]);
+    const canvas = this.canvas;
     const date = new Date();
     const render = () => {
       time = performance.now() * 0.001;
       for (let i = 0; i < this.programs.length; i++) {
-        const canvas = this.canvas;
+        const pos = new Float32Array([
+          0.0, 0.0,
+          gl.canvas.width, 0.0,
+          0.0, gl.canvas.height,
+          0.0, gl.canvas.height,
+          gl.canvas.width, 0.0,
+          gl.canvas.width, gl.canvas.height,
+        ]);
+        const tex = new Float32Array([
+          0.0, 0.0,
+          1.0, 0.0,
+          0.0, 1.0,
+          0.0, 1.0,
+          1.0, 0.0,
+          1.0, 1.0,
+        ]);
         const buffers = this.buffers;
         const program = this.programs[i];
         const target = this.targets[i];
