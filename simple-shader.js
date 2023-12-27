@@ -1,4 +1,3 @@
-
 const defSrc = {
 vert: `#version 300 es
 precision lowp float;
@@ -42,6 +41,7 @@ const uniFuncs = {
 }
 
 let texCount = 0;
+let samplerRes = {};
 class RenderTarget {
   constructor(gl, width, height) {
     this.buffer = gl.createFramebuffer();
@@ -65,8 +65,9 @@ class RenderTarget {
   }
 }
 class Sampler {
-  constructor(gl, src) {
-    this.data = setupSampler(src);
+  constructor(gl, uniform) {
+    let src = uniform["path"][1];
+    this.data = setupSampler(uniform);
     this.Id = texCount++;
     const assignTexture = function(obj) {
       const tex = gl.createTexture();
@@ -86,8 +87,7 @@ class Sampler {
       this.data.copyReady = true;
       this.data.onload = assignTexture(this);
     }
-    else
-      this.data.onloadstart = assignTexture(this);
+    else this.data.onloadstart = assignTexture(this);
   }
 }
 
@@ -112,12 +112,12 @@ function initProgram(gl, vertSrc, fragSrc) {
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
     console.log(gl.getProgramInfoLog(program));
     return null;
-  };
+  }
   gl.validateProgram(program);
   if (!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
     console.log(gl.getProgramInfoLog(program));
     return null;
-  };
+  }
   return program;
 }
 function initBuffers(gl) {
@@ -145,7 +145,8 @@ function initBuffers(gl) {
   gl.bufferData(gl.ARRAY_BUFFER, tex, gl.DYNAMIC_DRAW);
   return { posBuf, texBuf };
 }
-function setupSampler(src) {
+function setupSampler(uniform) {
+  let src = uniform["path"][1];
   const video = {
     mp4: true
   };
@@ -154,6 +155,10 @@ function setupSampler(src) {
     if (document.getElementById(src)) {
       const sampler = document.getElementById(src);
       sampler.copyReady = true;
+      samplerRes[samplerRes.length] = [
+        sampler.videoWidth,
+        sampler.videoHeight
+      ];
       return sampler;
     }
     const sampler = new Image();
@@ -169,9 +174,9 @@ function setupSampler(src) {
       sampler.copyReady = true;
     }
   }
-  sampler.playsInline = true;
-  sampler.muted = true;
-  sampler.loop = true;
+  sampler.playsInline = uniform["playsInline"][1] !== null ? uniform["playsInline"][1] : true;
+  sampler.muted = uniform["muted"][1] !== null ? uniform["muted"][1] : true;
+  sampler.loop = uniform["loop"][1] !== null ? uniform["loop"][1] : true;
   sampler.addEventListener("playing", () => {
     playing = true;
     checkReady();
@@ -222,7 +227,7 @@ async function init(ss) {
     const unis = opts.uniforms[i] || {};
     if (unis.sampler2D) {
       Object.entries(unis.sampler2D).forEach(uniform => {
-        ss.samplers[i][uniform[0]] = new Sampler(gl, uniform[1]);
+        ss.samplers[i][uniform["path"][0]] = new Sampler(gl, uniform);
       });
     }
   }
@@ -242,7 +247,7 @@ function applyUniforms(gl, program, uniforms, samplers) {
           const sampler = samplers[uniform[0]];
           const image = sampler.data;
           if (!image.src) image.src = uniform[1];
-          image.width = gl.canvas.width;
+          image.width  = gl.canvas.width;
           image.height = gl.canvas.height;
           const texLoc = gl.getUniformLocation(program, uniform[0]);
           const idx = sampler.Id;
@@ -308,6 +313,7 @@ export class SimpleShader {
         const posLoc = gl.getAttribLocation(program, "position");
         const texLoc = gl.getAttribLocation(program, "texCoord");
         const resolutionLoc = gl.getUniformLocation(program, "resolution");
+        //TODO: resolution and time variables for each sampler
         const timeLoc = gl.getUniformLocation(program, "time");
         const dateLoc = gl.getUniformLocation(program, "date");
         const deltaLoc = gl.getUniformLocation(program, "delta");

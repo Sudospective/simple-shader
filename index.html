@@ -15,14 +15,19 @@
       canvas {
         width: 100%;
         height: 100%;
-      }
-      p {
-        color: white;
         position: absolute;
-        font: arial;
         left: 50%;
         top: 50%;
         transform: translate(-50%, -50%);
+      }
+      p {
+        color: white;
+        font: arial;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
         user-select: none;
       }
     </style>
@@ -53,7 +58,11 @@
         uniforms: [
           { // image.frag
             sampler2D: {
-              sampler0: "./examples/gamer-sudo.mp4"
+              sampler0: {
+                path: "./examples/gamer-sudo.mp4",
+                muted: false,
+                loop: true
+              }
             }
           },
           { // dream.frag
