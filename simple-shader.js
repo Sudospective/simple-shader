@@ -15,7 +15,7 @@ void main() {
 `,
 frag: `#version 300 es
 precision lowp float;
-#define PI 3.1415827
+#define PI 3.1415927
 uniform vec2 resolution;
 uniform float time;
 uniform sampler2D sampler0;
