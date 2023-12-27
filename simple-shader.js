@@ -1,4 +1,12 @@
+/*
+  simple-shader.js
+  Written by Sudospective and Spax
 
+  https://sudospective.net
+  https://github.com/SpiritAxolotl
+  https://git.sudospective.net/simple-shader
+  https://github.com/Sudospective/simple-shader
+*/
 const defSrc = {
 vert: `#version 300 es
 precision lowp float;
@@ -55,7 +63,7 @@ class RenderTarget {
     const type = gl.UNSIGNED_BYTE;
     const data = null;
     gl.texImage2D(gl.TEXTURE_2D, this.level, internalFormat, width, height, border, format, type, data);
-    // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);

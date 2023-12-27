@@ -10,7 +10,7 @@ precision lowp float;
 
 // You get to choose between JCVD and a quad
 
-//#define USE_JCVD
+// #define USE_JCVD
 #define USE_QUAD
 
 uniform vec2 resolution;
